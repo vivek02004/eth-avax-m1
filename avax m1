@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.18;
+
+contract ErrorHandlingExample {
+    address public owner;
+    uint public balance;
+    bool public isActive;
+
+    constructor() {
+        owner = msg.sender;
+        isActive = true;
+        balance = 100; // Initialize balance to 100
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can call this function");
+        _;
+    }
+
+    modifier onlyWhenActive() {
+        require(isActive, "Contract is not active");
+        _;
+    }
+
+    function deposit() public payable onlyWhenActive {
+        require(msg.value > 0, "Deposit amount must be greater than 0");
+        balance += msg.value;
+    }
+
+   function withdraw(uint _amount) public onlyWhenActive {
+    require(_amount <= balance, "Insufficient balance"); // Check if the balance covers the withdrawal
+    balance -= _amount; // Deduct the amount from the balance
+    payable(msg.sender).transfer(_amount); // Transfer the amount to the caller
+}
+
+    
+
+    function setBalance(uint _newBalance) public onlyOwner {
+        balance = _newBalance; // Allow the owner to adjust the balance
+    }
+
+    function deactivateContract() public onlyOwner onlyWhenActive {
+        isActive = false;
+        payable(owner).transfer(address(this).balance);
+    }
+}
